@@ -1,16 +1,13 @@
-import csv
 import pandas as pd
 
 
-    #Abre o CSV e l^e linhas ignorando os erros
-with open('C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.csv', 'r', errors='ignore') as f:
-    reader = csv.reader(f)
-    lines = []
-    for line in reader:
-            lines.append(line)
-    
-df = pd.DataFrame(lines)
-    
-df.to_parquet('C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.parquet')
+csv_file_path = 'C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.csv'
+
+parquet_file_path = 'C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.parquet'
+
+df = pd.read_csv(csv_file_path, encoding='utf-8', on_bad_lines='skip')
+
+
+df.to_parquet(parquet_file_path, engine='pyarrow')
 
 
