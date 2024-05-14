@@ -1,41 +1,27 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
+from pages.util.pages_util import read_ACC_df, build_dataframe_section, dicionario_acc
 
-def main():
-    st.title('Projetos III - Grupo 8')
+st.set_page_config(
+    page_title="PISI3 - Grupo 8",
+    layout="wide"
+)
 
-    file_path = 'C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.parquet'
+def build_page():
+    build_header()
+    build_body()
 
-    df = pd.read_parquet(file_path, engine='pyarrow')
+def build_header():
+    text ='<h1>Projetos 3 - Grupo 8</h1>' + \
+       '<p>Este projeto visa realizar análises utilizando os dados disponibilizados pelo Centro Animal de Austin. '+ \
+       'Os dados foram obtidos a partir do conjunto de dados disponível no ' + \
+       '<a href="https://www.kaggle.com/datasets/aaronschlegel/austin-animal-center-shelter-intakes-and-outcomes?select=aac_intakes_outcomes.csv" target="_blank">Kaggle</a>.</p>'
+    st.write(text, unsafe_allow_html=True)
 
-   
-    selected_columns = st.multiselect('Selecione as colunas para visualizar', options=df.columns.tolist(), default=df.columns.tolist(), key='multiselect')
-     #Filtro
-    filtered_df = df[selected_columns]
+def build_body():
+    dicionario_acc()
+    df = read_ACC_df()
+    build_dataframe_section(df)
 
-    st.write('**Visualização do Dataset:**')
-    st.write(filtered_df)
-
-        #Gráfico coluna "age_upon_outcome"
-    if 'age_upon_outcome' in filtered_df.columns:
-
-        st.write('**Gráfico de Barras da Coluna "age_upon_outcome":**')
-        bar_fig = plt.figure(figsize=(10, 6))
-        filtered_df['age_upon_outcome'].value_counts().plot(kind='bar')
-        plt.xlabel('Idade no Momento da Saída')
-        plt.ylabel('Número de animais')
-        st.pyplot(bar_fig)
-
-        # Gráfico coluna "animal_type"
-    if 'animal_type' in filtered_df.columns:
-        animal_type_counts = filtered_df['animal_type'].value_counts()
-
-        st.write('**Tipos de animais:**')
-        pie_fig = plt.figure(figsize=(8, 8))
-        plt.pie(animal_type_counts, labels=animal_type_counts.index, autopct='%1.1f%%', startangle=140)
-        plt.axis('equal') 
-        st.pyplot(pie_fig)
-
-if __name__ == '__main__':
-    main()
+build_page()

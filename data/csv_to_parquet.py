@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-csv_file_path = 'C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.csv'
+csv_file_path = 'C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES_1.csv'
 
 parquet_file_path = 'C:/Users/julia/Documents/UFRPE/PROJETOS3/projetos3-julia/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.parquet'
 
