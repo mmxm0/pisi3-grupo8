@@ -19,6 +19,7 @@ def build_body():
     st.markdown('<h2>Gráficos relativos à idade do animal no momento de saída do abrigo</h2>', unsafe_allow_html=True)
     grafico_barra(df)
     grafico_boxplot(df)
+    grafico_scatter(df)
 
 def grafico_barra(df):
     age_counts = df['age_upon_outcome'].value_counts().reset_index()
