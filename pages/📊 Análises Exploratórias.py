@@ -31,5 +31,15 @@ def grafico_boxplot(df):
     selected_category = st.selectbox('Selecione a variável categórica para análise', options=['outcome_type', 'animal_type'], key='category_boxplot')
     box_fig = px.box(df, x=selected_category, y='age_upon_outcome_(years)', points="all", labels={selected_category: selected_category, 'age_upon_outcome_(years)': 'Idade (anos)'})
     st.plotly_chart(box_fig, use_container_width=True)
+
+def grafico_scatter(df):
+    st.write('**Gráfico Scatter relativo à idade na saída por tempo total no abrigo**')
+    fig = px.scatter(df, x = 'age_upon_outcome_(years)', y = 'time_in_shelter_days', 
+                     color = 'animal_type', hover_data = ['breed'], 
+                     labels = {'age_upon_outcome_(years)': 'Idade na Saída (anos)', 
+                             'time_in_shelter_days': 'Tempo no Abrigo (dias)',
+                             'animal_type': 'Animal',
+                             'breed': 'Raça'})
+    st.plotly_chart(fig, use_container_width=True)
     
 build_page()
