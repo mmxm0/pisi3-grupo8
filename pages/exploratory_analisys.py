@@ -48,7 +48,7 @@ def grafico_parallel_categories(df):
     st.write('**Gráfico de Categorias Paralelas relativo à idade na saída por tempo total no abrigo**')
     fig = px.parallel_categories(df, color='intake_month',
                                  dimensions=["animal_type","outcome_type", "sex_upon_outcome", "intake_condition", "intake_number"], 
-                                 labels={'animal_type': 'Animal', 'outcome_type':'Tipo de Entrada', 'sex_upon_outcome':'Gênero', 'intake_condition':'Condição de Entrada', 'intake_number':'Nº de Entradas'},
+                                 labels={'animal_type': 'Animal', 'outcome_type':'Tipo de Entrada', 'sex_upon_outcome':'Gênero', 'intake_condition':'Condição de Entrada', 'intake_number':'Nº de Entradas', 'intake_month':'mês'},
                                  color_continuous_scale=px.colors.sequential.Inferno)
     st.plotly_chart(fig, use_container_width=True)
 build_page()
