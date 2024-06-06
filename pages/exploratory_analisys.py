@@ -20,6 +20,7 @@ def build_body():
     grafico_barra(df)
     grafico_boxplot(df)
     grafico_scatter(df)
+    grafico_parallel_categories(df)
 
 def grafico_barra(df):
     age_counts = df['age_upon_outcome'].value_counts().reset_index()
@@ -42,5 +43,9 @@ def grafico_scatter(df):
                              'animal_type': 'Animal',
                              'breed': 'Raça'})
     st.plotly_chart(fig, use_container_width=True)
-    
+
+def grafico_parallel_categories(df):
+    st.write('**Gráfico de Categorias Paralelas relativo à idade na saída por tempo total no abrigo**')
+    fig = px.parallel_categories(df, color='intake_month',dimensions=["animal_type","outcome_type", "sex_upon_outcome", "intake_condition", "intake_number"], color_continuous_scale=px.colors.sequential.Inferno)
+    st.plotly_chart(fig, use_container_width=True)
 build_page()

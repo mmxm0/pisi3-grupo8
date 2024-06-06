@@ -1,8 +1,16 @@
 import pandas as pd
 import streamlit as st
 from utils import read_df
+from st_pages import Page, show_pages, add_page_title
 
+#add_page_title()
 
+show_pages(
+    [
+        Page("Home.py", "Início", "🏠"),
+        Page("pages/exploratory_analisys.py", "Análises Exploratórias", "📝")
+    ]
+)
 def build_dataframe_section(df:pd.DataFrame):
     st.write('<h2>Dados do Centro de Animal de Austin</h2>', unsafe_allow_html=True)
     st.dataframe(df)
@@ -62,3 +70,4 @@ def dicionario_acc():
         </table>
         <br>
 ''', unsafe_allow_html=True)
+        
