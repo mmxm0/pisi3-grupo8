@@ -21,6 +21,7 @@ def build_body():
     grafico_boxplot(df)
     grafico_scatter(df)
     grafico_parallel_categories(df)
+    grafico_bubble(df)
 
 def grafico_barra(df):
     age_counts = df['age_upon_outcome'].value_counts().reset_index()
