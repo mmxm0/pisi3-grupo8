@@ -21,6 +21,7 @@ def build_body():
     grafico_boxplot(df)
     grafico_scatter(df)
     grafico_parallel_categories(df)
+    grafico_bubble(df)
 
 def grafico_barra(df):
     age_counts = df['age_upon_outcome'].value_counts().reset_index()
@@ -51,4 +52,36 @@ def grafico_parallel_categories(df):
                                  labels={'animal_type': 'Animal', 'outcome_type':'Tipo de Entrada', 'sex_upon_outcome':'Gênero', 'intake_condition':'Condição de Entrada', 'intake_number':'Nº de Entradas', 'intake_month':'mês'},
                                  color_continuous_scale=px.colors.sequential.Inferno)
     st.plotly_chart(fig, use_container_width=True)
+
+def grafico_bubble(df):
+    st.write('**Gráfico Bubble relativo ao tempo total no abrigo por raça**')
+    df_aux = df[['breed', 'time_in_shelter_days']].copy()
+    df_aux = df_aux.groupby('breed').agg(
+        qtd=('time_in_shelter_days', 'size'),
+        avg_time=('time_in_shelter_days', 'mean')
+    ).reset_index()
+
+    
+    df_aux = df_aux[df_aux['avg_time'] > df_aux['avg_time'].quantile(0.75)]  
+
+    fig = px.scatter(df_aux, 
+                     x='breed', 
+                     y='avg_time', 
+                     size='qtd', 
+                     color='breed', 
+                     size_max=60,
+                     labels={'breed': 'Raça', 
+                             'avg_time': 'Tempo Médio no Abrigo (dias)', 
+                             'qtd': 'Quantidade de Animais'})
+
+    fig.update_layout(
+        xaxis_title="Raça",
+        yaxis_title="Tempo Médio no Abrigo (dias)",
+        xaxis={'categoryorder':'total descending', 'visible': False},
+        showlegend=False
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
 build_page()
