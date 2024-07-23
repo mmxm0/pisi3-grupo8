@@ -30,8 +30,8 @@ def grafico_barra(df):
     st.plotly_chart(bar_fig, use_container_width=True)
 
 def grafico_boxplot(df):
-    st.write('**Boxplot de Idade na Saída por Tipo de Saída (em anos)**')
-    selected_category = st.selectbox('Selecione a variável categórica para análise', options=['outcome_type', 'animal_type'], key='category_boxplot')
+    st.write('**Boxplot de Idade (em anos)**')
+    selected_category = st.selectbox('Selecione a categória para análise', options=['outcome_type', 'animal_type'], key='category_boxplot')
     box_fig = px.box(df, x=selected_category, y='age_upon_outcome_(years)', points="all", labels={selected_category: selected_category, 'age_upon_outcome_(years)': 'Idade (anos)'})
     st.plotly_chart(box_fig, use_container_width=True)
 
