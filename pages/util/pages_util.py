@@ -9,7 +9,10 @@ show_pages(
     [
         Page("Home.py", "Início", "🏠"),
         Page("pages/exploratory_analisys.py", "Análises Exploratórias", "📝"),
-        Page("pages/preprocess.py", "Pré-processamento")
+        Page("pages/preprocess.py", "Pré-processamento"),
+        Page("pages/clusterizacao.py", "Clusterização", "🫧"),
+        Page("pages/classificacao.py", "Classificação", "🗃️"),
+        Page("pages/matrizconfusao.py", "Matriz de Confusão", "✅"),       
     ]
 )
 def build_dataframe_section(df:pd.DataFrame):

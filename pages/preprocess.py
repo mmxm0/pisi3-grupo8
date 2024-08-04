@@ -261,6 +261,10 @@ def main():
     else:
         st.write(f"Número de registros duplicados no Dataset Final: {final_duplicate_count}")
 
+        # Salvar o dataset pré-processado
+    data_encoded.to_parquet('data/processed_ACC_INTAKES_OUTCOMES.parquet')
+
+
 if __name__ == "__main__":
     main()
 
