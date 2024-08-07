@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from utils import read_df
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 import io
 
 st.set_page_config(page_title="Pré-processamento dos dados", layout="wide")
@@ -94,13 +94,20 @@ def scale_numeric_data(data):
     data_scaled[numeric_cols] = scaler.fit_transform(data_scaled[numeric_cols])
     return data, data_scaled, numeric_cols
 
+def normalize_numeric_data(data):
+    scaler = MinMaxScaler()
+    numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns
+    data_normalized = data.copy()
+    data_normalized[numeric_cols] = scaler.fit_transform(data_normalized[numeric_cols])
+    return data, data_normalized, numeric_cols
+
 def apply_label_encoding(data):
     # Instanciar o LabelEncoder
     le = LabelEncoder()
     # Colunas para aplicar Label Encoding
     columns_to_encode = [
         'age_upon_outcome_age_group', 'outcome_weekday', 
-        'outcome_number', 'intake_weekday', 'intake_number'
+        'outcome_number', 'intake_weekday', 'intake_number', 'age_upon_intake_age_group', 'outcome_subtype', 
     ]
     
     st.markdown("<h2>Comparação de colunas com Label Encoding (antes e depois):</h2>", unsafe_allow_html=True)
@@ -116,7 +123,7 @@ def apply_label_encoding(data):
         })
         st.write(comparison_df)
     
-    return data
+    return data, columns_to_encode
 
 def apply_one_hot_encoding(data):
     # Variáveis para One-Hot Encoding
@@ -125,7 +132,7 @@ def apply_one_hot_encoding(data):
         'sex_upon_intake', 'intake_condition', 'intake_type'
     ]
     data_encoded = pd.get_dummies(data, columns=categorical_columns)
-    return data_encoded
+    return data_encoded, categorical_columns
 
 def apply_and_display_one_hot_encoding(data):
     # Variáveis para One-Hot Encoding
@@ -146,7 +153,7 @@ def apply_and_display_one_hot_encoding(data):
         st.write(f"**Coluna: {col}**")
         st.write(comparison_df)
     
-    return data_encoded
+    return data_encoded, categorical_columns
 
 def main():
     st.title("Pré-processamento dos dados")
@@ -184,7 +191,7 @@ def main():
         # Remover duplicatas
         data = remove_duplicates(data)
         st.write(f"Registros duplicados removidos. Número de registros restantes: {len(data)}")
-    
+
     # Identificação de Outliers
     st.markdown("<h2>Identificação de Outliers:</h2>", unsafe_allow_html=True)
     outlier_columns = identify_outliers(data)
@@ -194,42 +201,40 @@ def main():
     else:
         st.write("Não foram identificados outliers nas colunas numéricas.")
     
-    # Explicação da Técnica de Padronização
+    # Escalonamento de Dados Numéricos
     st.markdown("<h2>Escalonamento de dados:</h2>", unsafe_allow_html=True)
     st.write("""
-        Para este dataset, escolhemos a **padronização** usando a técnica de Standard Scaling.
-        A padronização transforma os dados para que tenham média zero e desvio padrão igual a um.
         
-        ### Por que escolhemos a padronização para este dataset?
-        Nosso dataset contém variáveis numéricas com diferentes escalas, como idade, tempo de permanência no abrigo e condições de saúde. Padronizar os dados ajuda a garantir que todas as variáveis tenham a mesma importância no modelo de machine learning.
+        1. **Padronização (Standard Scaling):**
+           - Transforma os dados para que tenham média zero e desvio padrão igual a um.
+           - É útil para algoritmos que assumem que os dados são distribuídos em uma forma normal (gaussiana).
         
-        - **Algoritmos Sensíveis à Escala**: Muitos algoritmos de machine learning, como regressão linear, SVMs e redes neurais, são sensíveis à escala das variáveis. A padronização garante que todas as variáveis contribuam igualmente para o modelo.
+        2. **Normalização (Min-Max Scaling):**
+           - Transforma os dados para que todos os valores estejam dentro do intervalo [0, 1].
+           - É útil para algoritmos que não fazem suposições sobre a distribuição dos dados, como redes neurais e métodos de distância (por exemplo, k-NN).
         
-        - **Variabilidade das Variáveis**: As variáveis do nosso dataset possuem diferentes unidades e amplitudes de valores. Padronizar os dados ajuda a nivelar essas diferenças, facilitando a análise e a construção do modelo.
-        
-        - **Melhor Desempenho**: Escalonar os dados pode melhorar o desempenho e a estabilidade numérica dos algoritmos, resultando em modelos mais precisos e robustos.
-        
-        - **Convergência Mais Rápida**: Para algoritmos de otimização, como o gradiente descendente, a padronização pode levar a uma convergência mais rápida e eficiente.
-        
-        ### Colunas não Padronizadas
-        As colunas "dob_month" e "outcome_month" não foram padronizadas porque representam meses do ano como valores inteiros de 1 a 12, que são valores categóricos e não contínuos. 
 
-        As colunas "dob_monthyear", "outcome_monthyear" e "intake_monthyear" não foram padronizadas porque representam um mês e ano combinado no formato mm/yyyy, que é uma representação categórica de um período de tempo.
-
-        A coluna "age_upon_outcome_age_group" não foi padronizada pois representa grupos de idade em intervalos, que são categóricos e não contínuos.
-
-        Essas colunas são categóricas ou representações de tempo, e padronizá-las não seria apropriado, pois a padronização é usada para ajustar variáveis numéricas contínuas para uma média zero e desvio padrão igual a um.
+    ### Abaixo estão as tabelas mostrando como as colunas foram alteradas antes e depois do escalonamento (padronização e normalização):
     """)
-
-    # Escalonamento de Dados Numéricos
-    st.markdown("<h2>Colunas Padronizadas (antes e depois):</h2>", unsafe_allow_html=True)
-    data_before, data_after, numeric_cols = scale_numeric_data(data)
-    for col in numeric_cols:
-        if not data_before[col].equals(data_after[col]):
-            st.write(f"**{col}**")
+    
+    data_before_scale, data_after_scale, numeric_cols_scale = scale_numeric_data(data)
+    data_before_norm, data_after_norm, numeric_cols_norm = normalize_numeric_data(data)
+    
+    for col in numeric_cols_scale:
+        if not data_before_scale[col].equals(data_after_scale[col]):
+            st.write(f"**{col}** (Padronizado)")
             comparison_df = pd.DataFrame({
-                'Antes': data_before[col].head(8),
-                'Depois': data_after[col].head(8)
+                'Antes': data_before_scale[col].head(8),
+                'Depois (Padronizado)': data_after_scale[col].head(8)
+            })
+            st.write(comparison_df)
+    
+    for col in numeric_cols_norm:
+        if not data_before_norm[col].equals(data_after_norm[col]):
+            st.write(f"**{col}** (Normalizado)")
+            comparison_df = pd.DataFrame({
+                'Antes': data_before_norm[col].head(8),
+                'Depois (Normalizado)': data_after_norm[col].head(8)
             })
             st.write(comparison_df)
     
@@ -240,30 +245,47 @@ def main():
         Utilizamos One-Hot Encoding para colunas categóricas nominais onde não há uma ordem implícita entre os valores, como `animal_type`, `outcome_type`, `sex_upon_outcome`, `sex_upon_intake`, `intake_condition` e `intake_type`. Esta técnica cria uma nova coluna binária para cada valor único da categoria, permitindo que o modelo trate cada valor de maneira igual.
 
         ### Label Encoding
-        Utilizamos Label Encoding para colunas categóricas ordinais onde há uma ordem implícita entre os valores, como `age_upon_outcome_age_group`, `outcome_weekday`, `outcome_number`, `intake_weekday` e `intake_number`. Esta técnica converte os valores categóricos em valores numéricos que refletem a ordem implícita entre eles.
+        Utilizamos Label Encoding para colunas categóricas ordinais onde há uma ordem implícita entre os valores, como `age_upon_outcome_age_group`, `outcome_subtype`, `outcome_weekday`, `outcome_number`, `intake_weekday` e `intake_number`. Esta técnica converte os valores categóricos em valores numéricos que refletem a ordem implícita entre eles.
     """)
 
     # Aplicar Label Encoding nas colunas específicas
-    data = apply_label_encoding(data)
+    data, columns_to_encode = apply_label_encoding(data)
 
     # Aplicar One-Hot Encoding e Mostrar Comparação
-    data_encoded = apply_and_display_one_hot_encoding(data)
+    data_encoded, categorical_columns = apply_and_display_one_hot_encoding(data)
     
-    # Exibir o dataset final
-    st.markdown("<h2>Dataset final após pré-processamento:</h2>", unsafe_allow_html=True)
-    st.write(data_encoded.head(20))  # Exibir as primeiras 20 linhas do dataset final
+    # Criar os datasets finais
+    columns_to_drop = numeric_cols_scale.tolist() + numeric_cols_norm.tolist() + columns_to_encode + categorical_columns
+
+    data_final_scaled = data_encoded.drop(columns=columns_to_drop, errors='ignore').join(data_after_scale[numeric_cols_scale])
+    data_final_normalized = data_encoded.drop(columns=columns_to_drop, errors='ignore').join(data_after_norm[numeric_cols_norm])
+
+    # Exibir o dataset final padronizado
+    st.markdown("<h2>Dataset final padronizado após pré-processamento:</h2>", unsafe_allow_html=True)
+    st.write(data_final_scaled.head(20))  # Exibir as primeiras 20 linhas do dataset final padronizado
+    
+    # Exibir o dataset final normalizado
+    st.markdown("<h2>Dataset final normalizado após pré-processamento:</h2>", unsafe_allow_html=True)
+    st.write(data_final_normalized.head(20))  # Exibir as primeiras 20 linhas do dataset final normalizado
     
     # Verificação de duplicatas no dataset final
     st.markdown("<h2>Verificação de duplicatas no Dataset Final:</h2>", unsafe_allow_html=True)
-    final_duplicate_count = analyze_duplicates(data_encoded)
-    if final_duplicate_count == 0:
-        st.write("Não há registros duplicados no Dataset Final.")
+    final_duplicate_count_scaled = analyze_duplicates(data_final_scaled)
+    final_duplicate_count_normalized = analyze_duplicates(data_final_normalized)
+    
+    if final_duplicate_count_scaled == 0:
+        st.write("Não há registros duplicados no Dataset Final Padronizado.")
     else:
-        st.write(f"Número de registros duplicados no Dataset Final: {final_duplicate_count}")
+        st.write(f"Número de registros duplicados no Dataset Final Padronizado: {final_duplicate_count_scaled}")
 
-        # Salvar o dataset pré-processado
-    data_encoded.to_parquet('data/processed_ACC_INTAKES_OUTCOMES.parquet')
-
+    if final_duplicate_count_normalized == 0:
+        st.write("Não há registros duplicados no Dataset Final Normalizado.")
+    else:
+        st.write(f"Número de registros duplicados no Dataset Final Normalizado: {final_duplicate_count_normalized}")
+    
+    # Salvar os datasets pré-processados
+    data_final_scaled.to_parquet('data/scaled_ACC_INTAKES_OUTCOMES.parquet')
+    data_final_normalized.to_parquet('data/normalized_ACC_INTAKES_OUTCOMES.parquet')
 
 if __name__ == "__main__":
     main()
