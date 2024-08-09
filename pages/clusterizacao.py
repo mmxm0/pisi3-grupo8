@@ -48,5 +48,5 @@ def main():
                          labels={'x': 'Número de Clusters', 'y': 'Soma dos Quadrados das Distâncias'})
     st.plotly_chart(fig_scaled)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()

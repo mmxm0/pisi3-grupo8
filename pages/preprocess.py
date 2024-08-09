@@ -291,5 +291,5 @@ def main():
     data_final_scaled.to_parquet('data/scaled_ACC_INTAKES_OUTCOMES.parquet')
     data_final_normalized.to_parquet('data/normalized_ACC_INTAKES_OUTCOMES.parquet')
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
