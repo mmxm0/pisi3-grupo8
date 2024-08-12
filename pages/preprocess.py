@@ -87,6 +87,10 @@ def plot_outliers(data, outlier_columns):
         fig_no_outliers = px.box(data_no_outliers, x=col, title=f'Coluna: {col} (Sem Outliers)', orientation='h', color_discrete_sequence=['#87CEEB'])  # Azul claro
         st.plotly_chart(fig_no_outliers)
 
+def categorize_breeds(data):
+    data['is_mix_breed'] = data['breed'].str.contains('Mix|/', case=False, na=False).astype(int)
+    return data
+
 def scale_numeric_data(data):
     scaler = StandardScaler()
     numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns
@@ -102,9 +106,7 @@ def normalize_numeric_data(data):
     return data_normalized, numeric_cols
 
 def apply_label_encoding(data):
-    # Instanciar o LabelEncoder
     le = LabelEncoder()
-    # Colunas para aplicar Label Encoding
     columns_to_encode = [
         'age_upon_outcome_age_group', 'outcome_weekday', 
         'outcome_number', 'intake_weekday', 'intake_number', 'age_upon_intake_age_group', 'outcome_subtype', 
@@ -115,8 +117,7 @@ def apply_label_encoding(data):
     for col in columns_to_encode:
         data[f'{col}_encoded'] = le.fit_transform(data[col])
         
-        # Exibir comparação antes e depois
-        st.markdown(f"*{col}*", unsafe_allow_html=True)
+        st.markdown(f"{col}", unsafe_allow_html=True)
         comparison_df = pd.DataFrame({
             'Original': data[col].head(10),
             'Encoded': data[f'{col}_encoded'].head(10)
@@ -126,7 +127,6 @@ def apply_label_encoding(data):
     return data, columns_to_encode
 
 def apply_one_hot_encoding(data):
-    # Variáveis para One-Hot Encoding
     categorical_columns = [
         'animal_type', 'outcome_type', 'sex_upon_outcome',
         'sex_upon_intake', 'intake_condition', 'intake_type'
@@ -135,22 +135,19 @@ def apply_one_hot_encoding(data):
     return data_encoded, categorical_columns
 
 def apply_and_display_one_hot_encoding(data):
-    # Variáveis para One-Hot Encoding
     categorical_columns = [
         'animal_type', 'outcome_type', 'sex_upon_outcome',
         'sex_upon_intake', 'intake_condition', 'intake_type'
     ]
     
-    # Aplicar One-Hot Encoding
     data_encoded = pd.get_dummies(data, columns=categorical_columns)
     
-    # Exibir comparação antes e depois
     st.markdown("<h2>Comparação de colunas com One-Hot Encoding (antes e depois):</h2>", unsafe_allow_html=True)
     for col in categorical_columns:
-        before = data[col].head(10).to_frame()  # Exibir apenas as 10 primeiras linhas para comparação
+        before = data[col].head(10).to_frame()  
         after = data_encoded.filter(like=col).head(10)
         comparison_df = pd.concat([before, after], axis=1)
-        st.write(f"*Coluna: {col}*")
+        st.write(f"Coluna: {col}")
         st.write(comparison_df)
     
     return data_encoded, categorical_columns
@@ -158,22 +155,19 @@ def apply_and_display_one_hot_encoding(data):
 def main():
     st.title("Pré-processamento dos dados")
     
-    # Carregar os dados
-    df_name = 'ACC_INTAKES_OUTCOMES'  # Nome do arquivo Parquet (sem extensão)
+    df_name = 'ACC_INTAKES_OUTCOMES'  
     data = read_df(df_name, extension='parquet')
     
     st.markdown("<h2>Dataset original:</h2>", unsafe_allow_html=True)
-    st.write(data.head(20))  # Exibir as primeiras 20 linhas da tabela
+    st.write(data.head(20))  
     
     st.markdown("<h2>Informações do dataset:</h2>", unsafe_allow_html=True)
     st.text(display_dataframe_info(data))
     
-    # Correção de Tipos de Variáveis
     data = convert_data_types(data)
     st.markdown("<h2>Informações do dataset após correção dos tipos:</h2>", unsafe_allow_html=True)
     st.text(display_dataframe_info(data))
 
-    # Análise de Valores Ausentes
     st.markdown("<h2>Análise de valores ausentes:</h2>", unsafe_allow_html=True)
     missing_values = analyze_missing_values(data)
     if missing_values.empty:
@@ -181,41 +175,40 @@ def main():
     else:
         st.write(missing_values)
     
-    # Análise de Duplicatas
     st.markdown("<h2>Análise de Duplicatas:</h2>", unsafe_allow_html=True)
     duplicate_count = analyze_duplicates(data)
     if duplicate_count == 0:
         st.write("Não há registros duplicados no DataFrame.")
     else:
         st.write(f"Número de registros duplicados: {duplicate_count}")
-        # Remover duplicatas
         data = remove_duplicates(data)
         st.write(f"Registros duplicados removidos. Número de registros restantes: {len(data)}")
 
-    # Identificação de Outliers
     st.markdown("<h2>Identificação de Outliers:</h2>", unsafe_allow_html=True)
     outlier_columns = identify_outliers(data)
     if outlier_columns:
         st.write(f"Foi identificado outliers nas seguintes colunas: {', '.join(outlier_columns)}")
         plot_outliers(data, outlier_columns)
-        # Remover outliers
         data = remove_outliers(data, outlier_columns)
         st.write(f"Outliers removidos. Número de registros restantes: {len(data)}")
     else:
         st.write("Não foram identificados outliers nas colunas numéricas.")
 
-    #Salvar o dataset original limpo como data_cleaned
     data.to_parquet('data/data_cleaned.parquet')
     
+    # Categorização de raças
+    st.markdown("<h2>Categorização de raças:</h2>", unsafe_allow_html=True)
+    data = categorize_breeds(data)
+    st.write(data[['breed', 'is_mix_breed']].head(20))  # Exibir as primeiras 20 linhas da tabela com a nova coluna
+
     # Escalonamento de Dados Numéricos
     st.markdown("<h2>Escalonamento de dados:</h2>", unsafe_allow_html=True)
     st.write("""
-        
-        1. *Padronização (Standard Scaling):*
+        1. Padronização (Standard Scaling):
            - Transforma os dados para que tenham média zero e desvio padrão igual a um.
            - É útil para algoritmos que assumem que os dados são distribuídos em uma forma normal (gaussiana).
         
-        2. *Normalização (Min-Max Scaling):*
+        2. Normalização (Min-Max Scaling):
            - Transforma os dados para que todos os valores estejam dentro do intervalo [0, 1].
            - É útil para algoritmos que não fazem suposições sobre a distribuição dos dados, como redes neurais e métodos de distância (por exemplo, k-NN).
         
@@ -228,7 +221,7 @@ def main():
     
     for col in numeric_cols_scale:
         if not data_scaled[col].equals(data_normalized[col]):
-            st.write(f"*{col}* (Padronizado)")
+            st.write(f"{col} (Padronizado)")
             comparison_df = pd.DataFrame({
                 'Antes': data[col].head(8),
                 'Depois (Padronizado)': data_scaled[col].head(8)
@@ -237,7 +230,7 @@ def main():
     
     for col in numeric_cols_norm:
         if not data_scaled[col].equals(data_normalized[col]):
-            st.write(f"*{col}* (Normalizado)")
+            st.write(f"{col} (Normalizado)")
             comparison_df = pd.DataFrame({
                 'Antes': data[col].head(8),
                 'Depois (Normalizado)': data_normalized[col].head(8)
