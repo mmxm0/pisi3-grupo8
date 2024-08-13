@@ -9,47 +9,32 @@ parquet_file_path = 'c:/Users/marta.maria.x.melo/OneDrive - Accenture/Desktop/PI
 parquet_file_path_intact = 'c:/Users/marta.maria.x.melo/OneDrive - Accenture/Desktop/PISI3/pisi3-grupo8/data/ACC_INTAKES_OUTCOMES.parquet'
 
 parquet_file_path_normalized = 'c:/Users/marta.maria.x.melo/OneDrive - Accenture/Desktop/PISI3/pisi3-grupo8/data/normalized_ACC_INTAKES_OUTCOMES.parquet'
-# Identificar características categóricas e numéricas
-categorical_features = [
-    'color', 'breed', 'found_location', 'age_upon_outcome_age_group_encoded',
-    'outcome_weekday_encoded', 'outcome_number_encoded', 'intake_weekday_encoded',
-    'intake_number_encoded', 'age_upon_intake_age_group_encoded', 'outcome_subtype_encoded',
-    'animal_type_Bir', 'animal_type_Cat', 'animal_type_Dog', 'animal_type_Oth',
-    'outcome_type_Adoption       ', 'outcome_type_Died           ', 'outcome_type_Euthanasia     ',
-    'outcome_type_Missing        ', 'outcome_type_Return to Owner', 'outcome_type_Transfer       ',
-    'sex_upon_outcome_Intact Female', 'sex_upon_outcome_Intact Male  ', 'sex_upon_outcome_Neutered Male',
-    'sex_upon_outcome_Spayed Female', 'sex_upon_outcome_Unknown      ', 'sex_upon_intake_Intact Female',
-    'sex_upon_intake_Intact Male  ', 'sex_upon_intake_Neutered Male', 'sex_upon_intake_Spayed Female',
-    'sex_upon_intake_Unknown      ', 'intake_condition_Aged   ', 'intake_condition_Feral  ',
-    'intake_condition_Injured', 'intake_condition_Normal ', 'intake_condition_Nursing',
-    'intake_condition_Other  ', 'intake_condition_Pregnan', 'intake_condition_Sick   ',
-    'intake_type_Euthanasia Request', 'intake_type_Owner Surrender   ', 'intake_type_Public Assist     ',
-    'intake_type_Stray             ', 'intake_type_Wildlife          '
-]
 
-numerical_features = [
-    'age_upon_intake_(days)', 'age_upon_outcome_(days)', 'time_in_shelter_days',
-    'age_upon_outcome_(years)', 'age_upon_intake_(years)'
-]
-
-# Configurar o transformador para variáveis categóricas e numéricas
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('cat', OneHotEncoder(sparse_output=False, handle_unknown='ignore'), categorical_features),
-        ('num', 'passthrough', numerical_features)
+features = [
+        'age_upon_intake_(days)', 'age_upon_outcome_age_group_encoded',
+        'animal_type_Bir', 'animal_type_Cat', 'animal_type_Dog', 'animal_type_Oth',
+        'is_mix_breed', 'intake_condition_Aged   ', 'intake_condition_Feral  ',
+        'intake_condition_Injured', 'intake_condition_Normal ', 'intake_condition_Nursing',
+        'intake_condition_Other  ', 'intake_condition_Pregnan', 'intake_condition_Sick   ',
+        'intake_type_Euthanasia Request', 'intake_type_Owner Surrender   ',
+        'intake_type_Public Assist     ', 'intake_type_Stray             ', 'intake_type_Wildlife          ',
+        'sex_upon_intake_Intact Female', 'sex_upon_intake_Intact Male  ', 
+        'sex_upon_intake_Neutered Male', 'sex_upon_intake_Spayed Female',
+        'sex_upon_intake_Unknown      ','time_in_shelter_days', 'age_upon_intake_age_group_encoded'
     ]
-)
+
 
 
 def load_and_split_data():
+    
     df = pd.read_parquet(parquet_file_path)
-     # Dividindo os dados em características (x) e rótulos (y)
-    x = df[categorical_features + numerical_features]
-    # Target outcome subtype
-    y = df['outcome_subtype']
 
-    x_processed = preprocessor.fit_transform(x)
-    x_train, x_test, y_train, y_test = train_test_split(x_processed, y, test_size=0.3, random_state=42)
+    # Dividindo os dados em características (x) e rótulos (y)
+    x = df[features]
+    # Target outcome subtype
+    y = df['outcome_type_Adoption       ']
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
 
     #x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
