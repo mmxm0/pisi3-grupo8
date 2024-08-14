@@ -6,7 +6,7 @@ def evaluate_model(model, X_test, y_test):
     return accuracy
 
 def evaluate_classification_report(model, x_test, y_test):
-    y_pred = model.predict(x_test)  # Usar o modelo treinado para fazer previsões
+    y_pred = model.predict(x_test)  
     report = classification_report(y_test, y_pred)
     return report
 

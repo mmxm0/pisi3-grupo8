@@ -29,14 +29,11 @@ def load_and_split_data():
     
     df = pd.read_parquet(parquet_file_path)
 
-    # Dividindo os dados em características (x) e rótulos (y)
     x = df[features]
-    # Target outcome subtype
     y = df['outcome_type_Adoption       ']
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
 
-    #x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
     return x_train, x_test, y_train, y_test
 
@@ -48,3 +45,14 @@ def calculate_description_statistics():
     df_processed = pd.read_parquet(parquet_file_path_normalized)
     print("Estatísticas dos Dados Normalizados:")
     print(df_processed.describe())
+
+def load_and_split_data_bi():
+    
+    df = pd.read_parquet(parquet_file_path)
+    x = df[[features]]
+    y = df[['outcome_type_Adoption       ']]
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
+
+
+    return x_train, x_test, y_train, y_test
