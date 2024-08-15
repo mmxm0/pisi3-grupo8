@@ -9,9 +9,9 @@ def build_page():
     build_body()
 
 def build_header():
-    text ='<h1>Análises Exploratórias</h1>'+\
-    '<p>Esta página apresenta alguns gráficos a partir da base de dados fornecida pelo Centro Animal de Austin. '+\
-    '(https://www.kaggle.com/datasets/aaronschlegel/austin-animal-center-shelter-intakes-and-outcomes?select=aac_intakes_outcomes.csv).</p>'
+    text = '<h1>Análises Exploratórias</h1>' + \
+           '<p>Esta página apresenta alguns gráficos a partir da base de dados fornecida pelo Centro Animal de Austin. ' + \
+           '(https://www.kaggle.com/datasets/aaronschlegel/austin-animal-center-shelter-intakes-and-outcomes?select=aac_intakes_outcomes.csv).</p>'
     st.write(text, unsafe_allow_html=True)
 
 def build_body():
@@ -30,7 +30,7 @@ def grafico_barra(df):
 
 def grafico_boxplot(df):
     st.write('**Boxplot de Idade (em anos)**')
-    selected_category = st.selectbox('Selecione a categória para análise', options=['outcome_type', 'animal_type'], key='category_boxplot')
+    selected_category = st.selectbox('Selecione a categoria para análise', options=['outcome_type', 'animal_type'], key='category_boxplot')
     box_fig = px.box(df, x=selected_category, y='age_upon_outcome_(years)', points="all", labels={selected_category: selected_category, 'age_upon_outcome_(years)': 'Idade (anos)'})
     st.plotly_chart(box_fig, use_container_width=True)
 
@@ -59,5 +59,37 @@ def grafico_histograma(df):
                            barmode='group')  # Agrupa as barras
     
     st.plotly_chart(bar_fig, use_container_width=True)
+
+    st.write('*Histograma relativo ao tempo total no abrigo por raça*')
+    
+    # Opções de filtro
+    opcao = st.selectbox('Selecione uma opção:', ('5 Raças Mais Adotadas', '5 Raças Menos Adotadas'))
+    
+    df_aux = df[['breed', 'time_in_shelter_days']].copy()
+    df_aux = df_aux.groupby('breed').agg(
+        qtd=('time_in_shelter_days', 'size'),
+        avg_time=('time_in_shelter_days', 'mean')
+    ).reset_index()
+
+    if opcao == '5 Raças Mais Adotadas':
+        df_filtered = df_aux.nlargest(5, 'qtd')
+    else:
+        df_filtered = df_aux.nsmallest(5, 'qtd')
+
+    fig = px.histogram(df_filtered, 
+                       x='breed', 
+                       y='avg_time', 
+                       nbins=5,
+                       labels={'breed': 'Raça', 
+                               'avg_time': 'Tempo Médio no Abrigo (dias)'})
+
+    fig.update_layout(
+        xaxis_title="Raça",
+        yaxis_title="Tempo Médio no Abrigo (dias)",
+        xaxis={'categoryorder':'total descending'},
+        showlegend=False
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 build_page()
