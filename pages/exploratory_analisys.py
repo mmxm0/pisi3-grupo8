@@ -19,9 +19,8 @@ def build_body():
     st.markdown('<h2>Gráficos relativos à idade do animal no momento de saída do abrigo</h2>', unsafe_allow_html=True)
     grafico_barra(df)
     grafico_boxplot(df)
-    grafico_scatter(df)
-    grafico_parallel_categories(df)
-    grafico_bubble(df)
+    grafico_barras(df)
+    grafico_histograma(df)
 
 def grafico_barra(df):
     age_counts = df['age_upon_outcome'].value_counts().reset_index()
@@ -35,53 +34,30 @@ def grafico_boxplot(df):
     box_fig = px.box(df, x=selected_category, y='age_upon_outcome_(years)', points="all", labels={selected_category: selected_category, 'age_upon_outcome_(years)': 'Idade (anos)'})
     st.plotly_chart(box_fig, use_container_width=True)
 
-def grafico_scatter(df):
-    st.write('**Gráfico Scatter relativo à idade na saída por tempo total no abrigo**')
-    fig = px.scatter(df, x = 'age_upon_outcome_(years)', y = 'time_in_shelter_days', 
-                     color = 'animal_type', hover_data = ['breed'], 
-                     labels = {'age_upon_outcome_(years)': 'Idade na Saída (anos)', 
-                             'time_in_shelter_days': 'Tempo no Abrigo (dias)',
-                             'animal_type': 'Animal',
-                             'breed': 'Raça'})
-    st.plotly_chart(fig, use_container_width=True)
+def grafico_barras(df):
+    st.write('**Gráfico de Barras: Comparação dos Tipos de Saída por Tipo de Animal**')
+    barras_data = df.groupby(['animal_type', 'outcome_type']).size().reset_index(name='count')
+    bar_fig = px.bar(barras_data, 
+                     x='animal_type', 
+                     y='count', 
+                     color='outcome_type', 
+                     barmode='group',
+                     labels={'animal_type': 'Tipo de Animal', 
+                             'count': 'Quantidade', 
+                             'outcome_type': 'Tipo de Saída'})
+    st.plotly_chart(bar_fig, use_container_width=True)
 
-def grafico_parallel_categories(df):
-    st.write('**Gráfico de Categorias Paralelas relativo à idade na saída por tempo total no abrigo**')
-    fig = px.parallel_categories(df, color='intake_month',
-                                 dimensions=["animal_type","outcome_type", "sex_upon_outcome", "intake_condition", "intake_number"], 
-                                 labels={'animal_type': 'Animal', 'outcome_type':'Tipo de Entrada', 'sex_upon_outcome':'Gênero', 'intake_condition':'Condição de Entrada', 'intake_number':'Nº de Entradas', 'intake_month':'mês'},
-                                 color_continuous_scale=px.colors.sequential.Inferno)
-    st.plotly_chart(fig, use_container_width=True)
-
-def grafico_bubble(df):
-    st.write('**Gráfico Bubble relativo ao tempo total no abrigo por raça**')
-    df_aux = df[['breed', 'time_in_shelter_days']].copy()
-    df_aux = df_aux.groupby('breed').agg(
-        qtd=('time_in_shelter_days', 'size'),
-        avg_time=('time_in_shelter_days', 'mean')
-    ).reset_index()
-
+def grafico_histograma(df):
+    st.write('**Gráfico Histograma: Análise do Tipo de Saída por Condição de Entrada**')
     
-    df_aux = df_aux[df_aux['avg_time'] > df_aux['avg_time'].quantile(0.75)]  
-
-    fig = px.scatter(df_aux, 
-                     x='breed', 
-                     y='avg_time', 
-                     size='qtd', 
-                     color='breed', 
-                     size_max=60,
-                     labels={'breed': 'Raça', 
-                             'avg_time': 'Tempo Médio no Abrigo (dias)', 
-                             'qtd': 'Quantidade de Animais'})
-
-    fig.update_layout(
-        xaxis_title="Raça",
-        yaxis_title="Tempo Médio no Abrigo (dias)",
-        xaxis={'categoryorder':'total descending', 'visible': False},
-        showlegend=False
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
+    bar_fig = px.histogram(df, 
+                           x='intake_condition', 
+                           color='outcome_type',
+                           labels={'intake_condition': 'Condição na Entrada', 
+                                   'outcome_type': 'Tipo de Saída',
+                                   'count': 'Quantidade'},
+                           barmode='group')  # Agrupa as barras
+    
+    st.plotly_chart(bar_fig, use_container_width=True)
 
 build_page()
