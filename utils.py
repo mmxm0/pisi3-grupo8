@@ -23,3 +23,4 @@ def __read_csv(path, encoding, low_memory=False):
     except:
         df = pd.read_csv(path, sep=';', encoding=encoding, low_memory=low_memory)
     return df
+
