@@ -1,5 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
 import pickle
 import os
 
@@ -29,3 +31,10 @@ def train_mpl_classifier(x_train_scaled, y_train):
     model.fit(x_train_scaled, y_train)
 
     return model
+
+def train_svm(x_train, y_train, krnel='rbf'):
+    svm_model = SVC(kernel=krnel, probability=True, random_state=42, class_weight='balanced')
+    svm_model.fit(x_train, y_train)
+
+    return svm_model
+
