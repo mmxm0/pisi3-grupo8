@@ -93,16 +93,24 @@ def categorize_breeds(data):
 
 def scale_numeric_data(data):
     scaler = StandardScaler()
-    numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns
+    numeric_cols = ['age_upon_outcome_(years)', 'age_upon_intake_(years)', 'time_in_shelter_days']
     data_scaled = data.copy()
-    data_scaled[numeric_cols] = scaler.fit_transform(data_scaled[numeric_cols])
+    
+    # Aplicar a padronização e criar novas colunas com sufixo _scaled
+    for col in numeric_cols:
+        data_scaled[f'{col}_scaled'] = scaler.fit_transform(data_scaled[[col]])
+    
     return data_scaled, numeric_cols
 
 def normalize_numeric_data(data):
     scaler = MinMaxScaler()
-    numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns
+    numeric_cols = ['age_upon_outcome_(years)', 'age_upon_intake_(years)', 'time_in_shelter_days']
     data_normalized = data.copy()
-    data_normalized[numeric_cols] = scaler.fit_transform(data_normalized[numeric_cols])
+    
+    # Aplicar a normalização e criar novas colunas com sufixo _normalized
+    for col in numeric_cols:
+        data_normalized[f'{col}_normalized'] = scaler.fit_transform(data_normalized[[col]])
+    
     return data_normalized, numeric_cols
 
 def apply_label_encoding(data):
@@ -219,23 +227,22 @@ def main():
     data_scaled, numeric_cols_scale = scale_numeric_data(data)
     data_normalized, numeric_cols_norm = normalize_numeric_data(data)
     
+    # Mostrar as comparações antes e depois do escalonamento
     for col in numeric_cols_scale:
-        if not data_scaled[col].equals(data_normalized[col]):
-            st.write(f"{col} (Padronizado)")
-            comparison_df = pd.DataFrame({
-                'Antes': data[col].head(8),
-                'Depois (Padronizado)': data_scaled[col].head(8)
-            })
-            st.write(comparison_df)
+        st.write(f"{col} (Padronizado)")
+        comparison_df = pd.DataFrame({
+            'Original': data[col].head(8),
+            'Padronizado': data_scaled[f'{col}_scaled'].head(8)
+        })
+        st.write(comparison_df)
     
     for col in numeric_cols_norm:
-        if not data_scaled[col].equals(data_normalized[col]):
-            st.write(f"{col} (Normalizado)")
-            comparison_df = pd.DataFrame({
-                'Antes': data[col].head(8),
-                'Depois (Normalizado)': data_normalized[col].head(8)
-            })
-            st.write(comparison_df)
+        st.write(f"{col} (Normalizado)")
+        comparison_df = pd.DataFrame({
+            'Original': data[col].head(8),
+            'Normalizado': data_normalized[f'{col}_normalized'].head(8)
+        })
+        st.write(comparison_df)
     
     # Explicação da Codificação
     st.markdown("<h2>Codificação dos dados:</h2>", unsafe_allow_html=True)
@@ -254,8 +261,8 @@ def main():
     data_encoded, categorical_columns = apply_and_display_one_hot_encoding(data_encoded)
     
     # Criar os datasets finais
-    data_final_scaled = data_encoded.drop(columns=numeric_cols_scale, errors='ignore').join(data_scaled[numeric_cols_scale])
-    data_final_normalized = data_encoded.drop(columns=numeric_cols_norm, errors='ignore').join(data_normalized[numeric_cols_norm])
+    data_final_scaled = data_encoded.join(data_scaled[[f'{col}_scaled' for col in numeric_cols_scale]])
+    data_final_normalized = data_encoded.join(data_normalized[[f'{col}_normalized' for col in numeric_cols_norm]])
 
     # Exibir o dataset final padronizado
     st.markdown("<h2>Dataset final padronizado após pré-processamento:</h2>", unsafe_allow_html=True)
@@ -286,3 +293,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
