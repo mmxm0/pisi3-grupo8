@@ -18,21 +18,14 @@ report = evaluate_classification_report(model, x_test, y_test)
 print(f"Acurácia do modelo: {accuracy:.2f}")
 print(f"Classificação de métricas precisão, recall e F1-score: \n{report}")
 
+x_train_svm, x_test_svm, y_train_svm, y_test_svm = data_preparation.load_and_split_data()
+svm_model = train_svm(x_train=x_train_svm, y_train=y_train_svm)
 
-x_train_tree, x_test_tree, y_train_tree, y_test_tree = data_preparation.load_and_split_data_bi()
+y_pred = svm_model.predict(x_test_svm)
 
-tree_model= train_random_forest(x_train_tree, y_train_tree)
+y_prob = svm_model.predict_proba(x_test_svm)
 
-y_pred_tree = tree_model.predict(y_test_tree)
-print("Acurácia da Árvore de Decisão:", accuracy_score(y_test_tree, y_pred_tree))
-print(classification_report(y_test_tree, y_pred_tree))
 
-'''
-x_train_neural, x_test_neural, y_train_tree, y_test_tree = data_preparation.load_and_split_data()
-
-tree_model= train_random_forest(x_train_tree, y_train_tree)
-
-y_pred_tree = tree_model.predict(y_test_tree)
-print("Acurácia da Árvore de Decisão:", accuracy_score(y_test_tree, y_pred_tree))
-print(classification_report(y_test_tree, y_pred_tree))
-'''
+# Relatório de classificação
+print("Relatório de Classificação:")
+print(classification_report(y_test, y_pred))
