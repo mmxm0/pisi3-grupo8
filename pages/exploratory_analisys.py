@@ -23,7 +23,12 @@ def build_body():
     grafico_pizza(df)
     st.write("")
     grafico_barra_por_idade(df)
-    
+    st.write("")
+    grafico_area_por_idade(df)
+    st.write("") 
+    grafico_linha(df)
+    st.write("")
+    grafico_bubble(df)
     st.write("")
     grafico_racas_adocao(df) 
 
@@ -288,6 +293,121 @@ def grafico_linha(df):
 
     st.plotly_chart(line_fig, use_container_width=True)
 
+def grafico_area_por_idade(df):
+    st.write('**Tempo de Permanência no Abrigo por Idade do Animal**')
+    df['categoria_animal'] = df['animal_type'].apply(lambda x: 'Cachorro' if x.lower() == 'dog' 
+                                                    else 'Gato' if x.lower() == 'cat' 
+                                                    else 'Pássaro' if x.lower() == 'bird' 
+                                                    else 'Outros Animais')
 
+    categorias_animais = ['Cachorro', 'Gato', 'Pássaro', 'Outros Animais']
+    categoria_selecionada = st.selectbox('Selecione o Tipo de Animal para análise:', categorias_animais, key='tipo_animal_selectbox')
+
+    df_filtrado = df[df['categoria_animal'] == categoria_selecionada]
+    df_filtrado = df_filtrado[df_filtrado['time_in_shelter_days'] > 180]
+
+    df_grouped_age = df_filtrado.groupby(['age_upon_outcome_(years)'])['time_in_shelter_days'].mean().reset_index(name='Tempo Médio (dias)')
+    df_grouped_age['Tempo Médio (anos)'] = df_grouped_age['Tempo Médio (dias)'] / 365
+
+    area_fig = px.area(
+        df_grouped_age,
+        x='age_upon_outcome_(years)',
+        y='Tempo Médio (anos)',
+        labels={'age_upon_outcome_(years)': 'Idade ao Sair (anos)', 'Tempo Médio (anos)': 'Tempo Médio no Abrigo (anos)'},
+        title=f"Tempo Médio de Permanência no Abrigo por Idade ({categoria_selecionada})"
+    )
+
+    st.plotly_chart(area_fig, use_container_width=True)
+
+def convert_age_to_years(age_str):
+    if pd.isnull(age_str):
+        return None
+    age_str = age_str.lower()
+    if 'year' in age_str:
+        return int(age_str.split()[0])
+    elif 'month' in age_str:
+        return int(age_str.split()[0]) / 12
+    else:
+        return None
+
+def determine_castration_status(sex):
+    if pd.isnull(sex):
+        return 'Desconhecido'
+    sex = sex.lower()
+    if 'neutered' in sex or 'spayed' in sex:
+        return 'Castrado'
+    elif 'intact' in sex:
+        return 'Não Castrado'
+    else:
+        return 'Desconhecido'
+
+def grafico_bubble(df):
+    st.write('**Análise de Castração por Idade e Gênero**')
+    
+    # Supondo que as funções convert_age_to_years e determine_castration_status já estejam definidas
+    df['age_in_years'] = df['age_upon_outcome'].apply(convert_age_to_years)
+    df['castration_intake'] = df['sex_upon_intake'].apply(determine_castration_status)
+    df['castration_outcome'] = df['sex_upon_outcome'].apply(determine_castration_status)
+    df['gender'] = df['sex_upon_outcome'].apply(lambda x: 'Masculino' if 'Male' in x else ('Feminino' if 'Female' in x else 'Desconhecido'))
+
+    # Adicionar filtro para selecionar o tipo de animal
+    animal_filter = st.selectbox(
+        'Selecione o Tipo de Animal:',
+        ['Todos os Animais', 'Cachorro', 'Gato']
+    )
+
+    # Filtrar o DataFrame com base no tipo de animal selecionado
+    if animal_filter == 'Cachorro':
+        df = df[df['animal_type'].str.lower() == 'dog']
+    elif animal_filter == 'Gato':
+        df = df[df['animal_type'].str.lower() == 'cat']
+
+    # Filtro para selecionar o status de castração
+    castration_filter = st.selectbox(
+        'Selecione o status de castração:',
+        ['Castrado na Entrada', 'Castrado na Saída', 'Não Castrado']
+    )
+
+    # Aplicar o filtro de castração
+    if castration_filter == 'Castrado na Entrada':
+        df_filtered = df[df['castration_intake'] == 'Castrado']
+    elif castration_filter == 'Castrado na Saída':
+        df_filtered = df[df['castration_outcome'] == 'Castrado']
+    else:
+        df_filtered = df[(df['castration_intake'] == 'Não Castrado') & (df['castration_outcome'] == 'Não Castrado')]
+    
+    df_filtered = df_filtered[df_filtered['gender'] != 'Desconhecido']
+
+    bins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    labels = [f'{i}-{j} anos' for i, j in zip(bins[:-1], bins[1:])]
+    df_filtered['age_group'] = pd.cut(df_filtered['age_in_years'], bins=bins, labels=labels, include_lowest=True, duplicates='drop')
+
+    gender_map = {'Feminino': 1, 'Masculino': 2}
+    df_filtered['gender_numeric'] = df_filtered['gender'].map(gender_map)
+
+    grouped_data = df_filtered.groupby(['age_group', 'gender', 'gender_numeric']).size().reset_index(name='count')
+
+    fig = px.scatter(grouped_data, 
+                     x='age_group', 
+                     y='gender_numeric', 
+                     size='count', 
+                     size_max=100, 
+                     opacity=0.75,
+                     color='gender',
+                     labels={'age_group': 'Faixa Etária (anos)', 
+                             'gender_numeric': 'Gênero',
+                             'gender': 'Gênero'})
+    
+    fig.update_layout(
+        yaxis=dict(
+            tickvals=[1, 2],
+            ticktext=['Feminino', 'Masculino'],
+            title='Gênero'
+        ),
+        xaxis_title='Faixa Etária (anos)',
+        showlegend=True
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
 build_page()
