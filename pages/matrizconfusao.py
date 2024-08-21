@@ -12,7 +12,6 @@ from imblearn.over_sampling import SMOTE
 # Título da página
 st.write("Classificação do modelo Ensemble", unsafe_allow_html=True)
 
-# Carregamento e preparação dos dados
 x_train, x_test, y_train, y_test = data_preparation.load_and_split_data()
 
 # Modelos base
@@ -25,7 +24,7 @@ ensemble_model = VotingClassifier(estimators=[
     ('svm', model_svm),
     ('rf', model_rf),
     ('lr', model_lr)
-], voting='soft')  # 'soft' usa probabilidades, 'hard' usa votos da maioria
+], voting='soft') 
 
 # Treinamento do modelo Ensemble
 ensemble_model.fit(x_train, y_train)
@@ -38,7 +37,6 @@ cm = confusion_matrix(y_test, y_pred)
 cm_df = pd.DataFrame(cm, index=["Classe Verdadeira: 0", "Classe Verdadeira: 1"],
                      columns=["Classe Predita: 0", "Classe Predita: 1"])
 
-# Exibição da matriz de confusão na interface
 st.title('Matriz de Confusão - Ensemble')
 fig = px.imshow(cm_df, text_auto=True, color_continuous_scale='Blues')
 fig.update_layout(title='Matriz de Confusão', xaxis_title='Classe Predita', yaxis_title='Classe Verdadeira')
